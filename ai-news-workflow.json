@@ -1,0 +1,204 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d7a9aa19-2ea8-4e8e-a5f1-9b7ef1278c8d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=\"Artificial+Intelligence\"+OR+AI+OR+LLM+OR+\"Generative+AI\"+&hl=en-US&gl=US&ceid=US:en",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "257ba5f0-a714-43c5-9bfb-e34c13ce67af",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "856957be-4425-4b89-b272-09751c74ffb9",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "71d99991-10a2-407e-ad19-d9f013894d1e",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I will provide 10 AI news items with headlines, descriptions, and URLs. Analyze all items and select the top 5 most important news stories. Summarize each in simple English, highlighting what happened and why it matters.\n\nGenerate a complete, clean, responsive HTML page titled \"Today's Top 5 AI News\". Display each story in a separate rounded <div> card with a numbered <h2> headline, short summary, key takeaway, and clickable original source URL. Use a modern design with a light background, subtle borders, good spacing, and readable typography.\n\nReturn only the final HTML code. Do not invent facts or URLs.\n\n{{ JSON.stringify($json.data)}}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        896,
+        0
+      ],
+      "id": "af76842d-1fa8-49ab-93b0-d629a1837655",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        208
+      ],
+      "id": "12b1309e-094a-47e4-90a4-0f52079265d5",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "UPFOtOkEn4rWPSYx",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "mvishwarya214@gmail.com",
+        "subject": "Daily AI News Updates",
+        "message": "={{ $json.text  }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "9412d70a-417f-442d-9999-fe5ae9d757c7",
+      "name": "Send a message",
+      "webhookId": "dbc920c8-d052-4034-a4fb-f2bc09e9b51f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mbDQDWxjjSPnnCpo",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c7ccd1a2-0c26-4eb3-9f0d-2df8dd8b34db",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6644e782fcf77ca24c580d361a64b51d6a9529b08d711fd271ad4dc877493c9a"
+  },
+  "nodeGroups": [],
+  "id": "RpfSJwqBq0ZeIQlP",
+  "tags": []
+}
